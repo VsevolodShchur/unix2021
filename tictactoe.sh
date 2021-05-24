@@ -1,6 +1,6 @@
 #!/bin/bash
 
-print_game()
+print_game() # Вывод текущего состояния игры
 {
     clear
     echo
@@ -12,7 +12,8 @@ print_game()
     echo
 }
 
-check_win() {
+check_win() # Проверка выигрыша
+{
     if [[ ${game[0]} == $player_char && ${game[1]} == $player_char && ${game[2]} == $player_char ||
           ${game[3]} == $player_char && ${game[4]} == $player_char && ${game[5]} == $player_char ||
           ${game[6]} == $player_char && ${game[7]} == $player_char && ${game[8]} == $player_char ||
@@ -29,7 +30,8 @@ check_win() {
     fi
 }
 
-check_draw() {
+check_draw() # Проверка на ничью
+{
     if [[ ${game[0]} != 1 && ${game[1]} != 2 && ${game[2]} != 3 && 
           ${game[3]} != 4 && ${game[4]} != 5 && ${game[5]} != 6 &&
           ${game[6]} != 7 && ${game[7]} != 8 && ${game[8]} != 9 ]]
@@ -43,8 +45,8 @@ check_draw() {
     fi
 }
 
-game=(1 2 3 4 5 6 7 8 9)
-IFS=' '
+game=(1 2 3 4 5 6 7 8 9) # Начальное состояние игры
+IFS=' '                  # Делитель строк
 
 if [[ -e pipe ]]
 then
@@ -63,14 +65,13 @@ do
     print_game
     check_draw
 
-    if "$end_of_move"
-    then
+    if "$end_of_move"; then
         echo "Ход другого игрока ($other)"
         read -a strarr <<< $( cat pipe )
         case $strarr in
         "exit") echo "Другой игрок вышел"
                 break ;;
-        *"win") ind=strarr[1]
+        *"win") ind=strarr[1]           # Если другой игрок победил, вывод конечного состояния игры
                 game[$ind-1]=$other
                 print_game
                 echo "Вы проиграли"
@@ -80,14 +81,16 @@ do
         read -a game <<< ${strarr[@]}
     else
         echo "Ваш ход ($player_char)"
-        read  -n1 -s input
+        read  -n1 -s input          # считывание нажатой клавишы
         end_of_move=true
-        case $input in
+        case $input in              # обработка Esc и выход
             $'\e')  echo "exit" > pipe
                     rm pipe
                     break ;;
         esac
-        if [[ ! " ${game[@]} " =~ " $input " ]]; then
+        if [[ ! " ${game[@]} " =~ " $input " || # Если введенная цифра не содержится в массиве game
+              $input = "X" || $input = "O" ]]   # Или введенн некорректный символ
+        then   
             end_of_move=false
         else
             game[$input-1]=$player_char
